@@ -203,12 +203,18 @@
                         isTrash = angular.isDefined(dropArea.attr('data-dragon-trash'));
                     if (isList) {
                         var expression = dropArea.attr('data-dragon');
+                        var dropCallback = dropArea.attr('data-dragon-on-drop');
                         var targetScope = dropArea.scope();
                         var match = expression.match(REPEATER_EXP);
 
                         var targetList = targetScope.$eval(match[2]);
+                        var targetCallback = targetScope.$eval(dropCallback);
+
                         targetScope.$apply(function () {
                             add(targetList, dragValue, dragKey);
+                            if (targetCallback && angular.isFunction(targetCallback)) {
+                                targetCallback(dragValue, dragKey);
+                            }
                         });
                     }
                     else if (isTrash) {

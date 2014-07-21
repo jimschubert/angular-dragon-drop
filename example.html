@@ -20,7 +20,7 @@
 <div ng-cloak class="container" ng-controller="MainCtrl">
 
     <div class="row">
-        <h2>Dragon Drop Example</h2>
+        <h2>Dragon Drop Example (with on-drop)</h2>
     </div>
 
     <hr>
@@ -28,12 +28,12 @@
         <div class="span6">
             <h3>Things</h3>
 
-            <div data-dragon="thing in things">{{thing}}</div>
+            <div data-dragon="thing in things" data-dragon-on-drop="log">{{thing}}</div>
         </div>
         <div class="span6">
             <h3>Other Things</h3>
 
-            <div data-dragon="thing in otherThings">{{thing}}</div>
+            <div data-dragon="thing in otherThings" data-dragon-on-drop="log">{{thing}}</div>
         </div>
     </div>
 
@@ -63,7 +63,7 @@
         <div class="span6">
             <h3>Things</h3>
 
-            <div data-dragon="thing in things" data-dragon-eliminate>{{thing}}</div>
+            <div data-dragon="thing in things">{{thing}}</div>
         </div>
         <div class="span6">
             <h3>Other Things</h3>
@@ -72,7 +72,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="span12" style="margin-top:1em;"><p>To eliminate, drop here (or anywhere there's no drop target)</p></div>
+        <div class="span12" style="margin-top:1em;"><p>To eliminate, drop here (or anywhere there's no drop target)</p>
     </div>
 
     <hr>
@@ -173,9 +173,12 @@
 <script src="dragon-drop.js"></script>
 <script>
     angular.module('ExampleApp', ['dragon-drop']).
-            controller('MainCtrl', function ($scope) {
+            controller('MainCtrl', function ($scope, $log) {
                 $scope.things = ['one', 'two', 'three'];
                 $scope.otherThings = [];
+                $scope.log = function(value, key) {
+                    $log.info('Key: %s, Value: %s', key, value);
+                }
             });
 </script>
 </body>
