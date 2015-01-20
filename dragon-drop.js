@@ -295,8 +295,7 @@ angular.module('btford.dragon-drop', []).
         container.append(child);
 
         var eliminate = container.attr('btf-dragon-eliminate') !== undefined;
-
-
+          
         return function (scope, elt, attr) {
 
           var accepts = scope.$eval(attr.btfDragonAccepts);
