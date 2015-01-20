@@ -1,3 +1,5 @@
+(function(){
+
 /*
  * angular-dragon-drop v0.3.1
  * (c) 2013 Brian Ford http://briantford.com
@@ -279,3 +281,5 @@ angular.module('btford.dragon-drop', []).
       }
     };
   });
+
+})();
