@@ -15,7 +15,7 @@ npm install dragon-drop
 
 ## Usage
 1. Include the `dragon-drop.js` script provided by this component into your app.
-2. Add `btford.dragon-drop` as a module dependency to your app.
+2. Add `dragon-drop` as a module dependency to your app.
 
 Repeats a template inside the dragon over a list.
 ```html
@@ -119,7 +119,7 @@ Example:
 ```
 
 ## Example
-See [`example.html`](http://htmlpreview.github.io/?https://github.com/btford/angular-dragon-drop/blob/master/example.html).
+See [`example.html`](http://htmlpreview.github.io/?https://github.com/jimschubert/angular-dragon-drop/blob/master/example.html).
 
 ## License
 MIT
