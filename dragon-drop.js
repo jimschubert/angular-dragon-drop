@@ -338,6 +338,7 @@
 
                             }
 
+                            ev.preventDefault();
                         });
 
                         elt.bind('mousemove', function (ev) {
