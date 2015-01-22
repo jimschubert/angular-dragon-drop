@@ -111,6 +111,7 @@
                     floaty.scope().$destroy();
                     floaty.remove();
                     floaty = null;
+                    enableSelect();
                 }
             };
 
@@ -223,6 +224,7 @@
 
                 dragValue = dragOrigin = null;
                 killFloaty();
+
             });
 
             return {
