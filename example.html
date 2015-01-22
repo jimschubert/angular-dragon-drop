@@ -55,6 +55,38 @@
 <div ng-cloak class="container" ng-controller="MainCtrl">
 
     <div class="row">
+        <h2>Dragon Drop Sortable Example</h2>
+    </div>
+
+    <hr>
+    <div class="row">
+        <div class="span6">
+            <h3>Things</h3>
+
+            <div>
+                <ul data-dragon="thing in things" data-dragon-sortable="sortCallback"><li data-dragon-base>{{thing}}</li></ul>
+            </div>
+        </div>
+        <div class="span6">
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="row">
+        <div class="span6">
+            <h3>Things</h3>
+            <pre>{{things | json}}</pre>
+        </div>
+        <div class="span6">
+        </div>
+    </div>
+
+</div>
+
+<div ng-cloak class="container" ng-controller="MainCtrl">
+
+    <div class="row">
         <h2>Dragon Drop Eliminate Example</h2>
     </div>
 
