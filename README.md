@@ -1,4 +1,5 @@
 # angular-dragon-drop
+
 "Drag and drop" directives for AngularJS. Work in progress.
 
 ## Install
@@ -7,16 +8,21 @@
 bower install angular-dragon-drop
 ```
 
+or
+```shell
+npm install angular-dragon-drop
+```
+
 ## Usage
 1. Include the `dragon-drop.js` script provided by this component into your app.
 2. Add `btford.dragon-drop` as a module dependency to your app.
 
 Repeats a template inside the dragon over a list.
 ```html
-<div btf-dragon="item in list">
+<div data-dragon="item in list">
   {{item.name}}
 </div>
-<div btf-dragon="item in otherList">
+<div data-dragon="item in otherList">
   {{item.name}}
 </div>
 ```
@@ -24,10 +30,10 @@ You can drag from one dragon onto another, and the models will be updated accord
 
 It also works on objects:
 ```html
-<div btf-dragon="(key, value) in list">
+<div data-dragon="(key, value) in list">
   {{key}}: {{value}}
 </div>
-<div btf-dragon="(key, value) in otherList">
+<div data-dragon="(key, value) in otherList">
   {{key}}: {{value}}
 </div>
 ```
@@ -39,34 +45,34 @@ This is a starting point.
 Configure by forking and editing the code according to your needs.
 Send a PR if you think your additions are widely useful. :)
 
-### btf-double-dragon
+### data-dragon-duplicate
 Instead of removing values from the array this dragon is bound to, the values are duplicated.
-Add the `btf-double-dragon` attribute to an element with the `btf-dragon` attribute to get the behavior.
+Add the `data-dragon-duplicate` attribute to an element with the `data-dragon` attribute to get the behavior.
 
 Example:
 ```html
 <h2>These get copied</h2>
-<div btf-dragon="item in list" btf-double-dragon>
+<div data-dragon="item in list" data-dragon-duplicate>
   {{item.name}}
 </div>
 <h2>These get moved</h2>
-<div btf-dragon="item in otherList">
+<div data-dragon="item in otherList">
   {{item.name}}
 </div>
 ```
 
-### btf-dragon-accepts
+### data-dragon-accepts
 Makes the dragon only accepts items that pass the truth test function given by this argument.
-Add the `btf-dragon-accepts` attribute to an element to get the behavior.
+Add the `data-dragon-accepts` attribute to an element to get the behavior.
 
 Example:
 ```html
 <h2>You can only put shiny objects here</h2>h2>
-<div btf-dragon="item in list" btf-dragon-accepts="shinyThings">
+<div data-dragon="item in list" data-dragon-accepts="shinyThings">
   {{item.name}}
 </div>
 <h2>This takes anything</h2>
-<div btf-dragon="item in otherList">
+<div data-dragon="item in otherList">
   {{item.name}}
 </div>
 ```
@@ -78,35 +84,35 @@ $scope.shinyThings = function (item) {
 };
 ```
 
-### btf-eliminate
+### data-dragon-eliminate
 Makes it so that the item is eliminated if it is not dropped inside of another dragon.
-Add the `btf-eliminate` attribute to an element to get the behavior.
+Add the `data-dragon-eliminate` attribute to an element to get the behavior.
 
 Example:
 ```html
 <h2>These get copied</h2>
-<div btf-dragon="item in list" btf-double-dragon>
+<div data-dragon="item in list" data-dragon-duplicate>
   {{item.name}}
 </div>
 <h2>These get moved or eliminated</h2>
-<div btf-dragon="item in otherList" btf-eliminate>
+<div data-dragon="item in otherList" data-dragon-eliminate>
   {{item.name}}
 </div>
 ```
 
-### btf-dragon-base / btf-dragon-container
+### data-dragon-base / data-dragon-container
 Makes it so the drop zone and template container can be separated.
-Add `btf-dragon-base` to the dragon and `btf-dragon-container` to any child of the dragon.
+Add `data-dragon-base` to the dragon and `data-dragon-container` to any child of the dragon.
 
 Example:
 ```html
-<div btf-dragon="item in list">
+<div data-dragon="item in list">
   {{item.name}}
 </div>
 <h2>Here they are separate so you can drop anywhere under the base</h2>
-<div btf-dragon="item in otherList" btf-dragon-base>
+<div data-dragon="item in otherList" data-dragon-base>
   <h1>Drop On Me</h1>
-  <div btf-dragon-container>
+  <div data-dragon-container>
     {{item.name}}
   </div>
 </div>

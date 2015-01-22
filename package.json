@@ -1,0 +1,49 @@
+{
+  "name": "angular-dragon-drop",
+  "version": "1.0.0",
+  "description": "Drag and Drop for AngularJS, a fork of Brian Ford's module.",
+  "main": "dragon-drop.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jimschubert/angular-dragon-drop.git"
+  },
+  "contributors": [
+    {
+      "name": "Jim Schubert",
+      "email": "jim@ipreferjim.com"
+    },
+    {
+      "name": "Jonathan Ohlrich"
+    },
+    {
+      "name": "Cesar Andreu"
+    },
+    {
+      "name": "Robin Böhm"
+    },
+    {
+      "name": "Gaëtan Petit"
+    },
+    {
+      "name": "Wizek"
+    }
+  ],
+  "keywords": [
+    "AngularJS",
+    "dnd",
+    "drag",
+    "and",
+    "drop",
+    "browser",
+    "client"
+  ],
+  "author": "Brian Ford",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jimschubert/angular-dragon-drop/issues"
+  },
+  "homepage": "https://github.com/jimschubert/angular-dragon-drop"
+}

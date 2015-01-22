@@ -1,16 +1,15 @@
+/*
+ * angular-dragon-drop v1.0.0
+ * (c) 2013-2015 Brian Ford http://briantford.com
+ * License: MIT
+ */
 (function () {
     'use strict';
 
     var REPEATER_EXP = /^\s*([\s\S]+?)\s+in\s+([\s\S]+?)(?:\s+as\s+([\s\S]+?))?(?:\s+track\s+by\s+([\s\S]+?))?\s*(?:\|\s+([\s\S]+?))?\s*$/;
 
-    /*
-     * angular-dragon-drop v0.3.1
-     * (c) 2013 Brian Ford http://briantford.com
-     * License: MIT
-     */
-
-    angular.module('btford.dragon-drop', []).
-        directive('btfDragon', ['$document', '$compile', '$rootScope', function ($document, $compile, $rootScope) {
+    angular.module('dragon-drop', []).
+        directive('dragon', ['$document', '$compile', '$rootScope', function ($document, $compile, $rootScope) {
             /*
              NOTE: ASCII dragon slayed, not removed.
              */
@@ -30,9 +29,9 @@
             var isFixed = function (element) {
                 var parents = element.parent(), i, len = parents.length;
                 for (i = 0; i < len; i++) {
-                    if (parents[i].hasAttribute('btf-dragon-fixed')) {
+                    if (parents[i].hasAttribute('data-dragon-fixed')) {
                         return true;
-                    } else if (parents[i].hasAttribute('btf-dragon')) {
+                    } else if (parents[i].hasAttribute('data-dragon')) {
                         return false;
                     }
                 }
@@ -75,7 +74,7 @@
                 var children = elem.find('*');
 
                 for (var i = 0; i < children.length; i++) {
-                    if (children[i].hasAttribute('btf-dragon-container')) {
+                    if (children[i].hasAttribute('data-dragon-container')) {
                         return angular.element(children[i]);
                     }
                 }
@@ -152,16 +151,16 @@
                 var dropArea = getElementBehindPoint(floaty, ev.clientX, ev.clientY);
 
                 var accepts = function () {
-                    return (dropArea.attr('btf-dragon') || angular.isDefined(dropArea.attr('btf-dragon-trash')) ) &&
-                        ( !dropArea.attr('btf-dragon-accepts') ||
-                        dropArea.scope().$eval(dropArea.attr('btf-dragon-accepts'))(dragValue) );
+                    return (dropArea.attr('data-dragon') || angular.isDefined(dropArea.attr('data-dragon-trash')) ) &&
+                        ( !dropArea.attr('data-dragon-accepts') ||
+                        dropArea.scope().$eval(dropArea.attr('data-dragon-accepts'))(dragValue) );
                 };
 
                 while (dropArea.length > 0 && !accepts()) {
                     dropArea = dropArea.parent();
                 }
 
-                if (dropArea.attr('btf-dragon-sortable') !== undefined) {
+                if (dropArea.attr('data-dragon-sortable') !== undefined) {
 
                     var min = dropArea[0].getBoundingClientRect().top;
                     var max = dropArea[0].getBoundingClientRect().bottom;
@@ -180,7 +179,7 @@
                             }
                             totalHeight += dropArea[0].children[i].getClientRects()[j].height;
                         }
-                        if (dropArea[0].children[i].attributes['btf-dragon-position'] !== undefined) {
+                        if (dropArea[0].children[i].attributes['data-dragon-position'] !== undefined) {
                             positions.push(smallestTop + (totalHeight / 2));
                         }
 
@@ -199,10 +198,10 @@
                 }
 
                 if (dropArea.length > 0) {
-                    var isList = angular.isDefined(dropArea.attr('btf-dragon')),
-                        isTrash = angular.isDefined(dropArea.attr('btf-dragon-trash'));
+                    var isList = angular.isDefined(dropArea.attr('data-dragon')),
+                        isTrash = angular.isDefined(dropArea.attr('data-dragon-trash'));
                     if (isList) {
-                        var expression = dropArea.attr('btf-dragon');
+                        var expression = dropArea.attr('data-dragon');
                         var targetScope = dropArea.scope();
                         var match = expression.match(REPEATER_EXP);
 
@@ -232,10 +231,10 @@
                 compile: function (container, attr) {
 
                     // get the `thing in things` expression
-                    var expression = attr.btfDragon;
+                    var expression = attr.dragon;
                     var match = expression.match(REPEATER_EXP);
                     if (!match) {
-                        throw new Error('Expected btfDragon in form of "_item_ in _collection_ [as _alias_] [track by _track_] [| _filter_]" but got "' +
+                        throw new Error('Expected dragon in form of "_item_ in _collection_ [as _alias_] [track by _track_] [| _filter_]" but got "' +
                         expression + '"."');
                     }
                     var iterateItem = match[1];
@@ -251,15 +250,15 @@
                     var valueIdentifier = match[3] || match[1];
                     var keyIdentifier = match[2];
 
-                    var duplicate = container.attr('btf-double-dragon') !== undefined;
+                    var duplicate = container.attr('data-dragon-duplicate') !== undefined;
 
                     // pull out the template to re-use.
                     // Improvised ng-transclude.
-                    if (container.attr('btf-dragon-base') !== undefined) {
+                    if (container.attr('data-dragon-base') !== undefined) {
                         container = findContainer(container);
 
                         if (!container) {
-                            throw new Error('Expected btf-dragon-base to be used with a companion btf-dragon-conatiner');
+                            throw new Error('Expected data-dragon-base to be used with a companion data-dragon-conatiner');
                         }
                     }
 
@@ -278,21 +277,21 @@
                     var child = template.clone();
                     child.attr('ng-repeat', expression);
 
-                    if (container.attr('btf-dragon-sortable') !== undefined) {
-                        child.attr('btf-dragon-position', '{{$index}}');
+                    if (container.attr('data-dragon-sortable') !== undefined) {
+                        child.attr('data-dragon-position', '{{$index}}');
                     }
 
                     container.html('');
                     container.append(child);
 
-                    var eliminate = container.attr('btf-dragon-eliminate') !== undefined;
+                    var eliminate = container.attr('data-dragon-eliminate') !== undefined;
 
                     return function (scope, elt, attr) {
 
-                        var accepts = scope.$eval(attr.btfDragonAccepts);
+                        var accepts = scope.$eval(attr.dragonAccepts);
 
                         if (accepts !== undefined && typeof accepts !== 'function') {
-                            throw new Error('Expected btfDragonAccepts to be a function.');
+                            throw new Error('Expected dragonAccepts to be a function.');
                         }
 
                         var spawnFloaty = function () {
