@@ -5,12 +5,12 @@
 ## Install
 
 ```shell
-bower install angular-dragon-drop
+bower install dragon-drop
 ```
 
 or
 ```shell
-npm install angular-dragon-drop
+npm install dragon-drop
 ```
 
 ## Usage

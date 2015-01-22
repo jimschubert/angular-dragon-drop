@@ -1,5 +1,5 @@
 {
-  "name": "angular-dragon-drop",
+  "name": "dragon-drop",
   "version": "1.0.0",
   "description": "Drag and Drop for AngularJS, a fork of Brian Ford's module.",
   "main": "dragon-drop.js",
