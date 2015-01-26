@@ -33,7 +33,8 @@
                 floaty,
                 offsetX,
                 offsetY,
-                fixed;
+                fixed,
+                documentBody = angular.element($document[0].body);
 
             var isFixed = function (element) {
                 var parents = element.parent(), i, len = parents.length;
@@ -50,6 +51,8 @@
             var drag = function (ev) {
                 var x = ev.clientX - offsetX,
                     y = ev.clientY - offsetY;
+
+                // console.log(getElementBehindPoint(floaty, x, y));
 
                 floaty.css('left', x + 'px');
                 floaty.css('top', y + 'px');
@@ -73,6 +76,7 @@
                     } else {
                         pos = collection.length;
                     }
+
                     collection.splice(pos, 0, item);
                 } else {
                     collection[key] = item;
@@ -90,8 +94,6 @@
 
                 return null;
             };
-
-            var documentBody = angular.element($document[0].body);
 
             var disableSelect = function () {
                 documentBody.css({
@@ -154,6 +156,9 @@
             $document.bind('mouseup', function (ev) {
                 mouseReleased = true;
 
+                var positions = [];
+                var position;
+
                 if (!dragValue) {
                     return;
                 }
@@ -174,8 +179,6 @@
 
                     var min = dropArea[0].getBoundingClientRect().top;
                     var max = dropArea[0].getBoundingClientRect().bottom;
-                    var positions = [];
-                    var position;
 
                     positions.push(min);
 
@@ -220,7 +223,7 @@
                         var targetCallback = targetScope.$eval(dropCallback);
 
                         targetScope.$apply(function () {
-                            add(targetList, dragValue, dragKey);
+                            add(targetList, dragValue, dragKey, position);
                             if (targetCallback && angular.isFunction(targetCallback)) {
                                 targetCallback(dragValue, dragKey);
                             }
@@ -233,7 +236,7 @@
                     // no dropArea here
                     // put item back to origin
                     $rootScope.$apply(function () {
-                        add(dragOrigin, dragValue, dragKey);
+                        add(dragOrigin, dragValue, dragKey, position);
                     });
                 }
 
@@ -344,15 +347,8 @@
                             if (tag === 'SELECT' || tag === 'INPUT' || tag === 'BUTTON') {
                                 return;
                             } else {
-
                                 mouseReleased = false;
-
-                                if (isFixed(angular.element(ev.target))) {
-                                    fixed = true;
-                                } else {
-                                    fixed = false;
-                                }
-
+                                fixed = !!isFixed(angular.element(ev.target));
                             }
 
                             ev.preventDefault();
