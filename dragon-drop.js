@@ -6,7 +6,7 @@
  | | -------------------/--|-voV---\`|'/--Vov-|--\---------------------|-|
  |-|                         '^`   (o o)  '^`                          | |
  | |                               `\Y/'                               |-|
- |-|  dragon-drop v1.0.2                                               | |
+ |-|  dragon-drop v1.0.3                                               | |
  | |  (c) 2013-2015 Brian Ford http://briantford.com                   |-|
  |-|                                                                   | |
  | |  License: MIT                                                     |-|
