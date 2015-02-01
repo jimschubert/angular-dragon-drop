@@ -23,10 +23,13 @@
     var REPEATER_EXP = /^\s*([\s\S]+?)\s+in\s+([\s\S]+?)(?:\s+as\s+([\s\S]+?))?(?:\s+track\s+by\s+([\s\S]+?))?\s*(?:\|\s+([\s\S]+?))?\s*$/;
 
     angular.module('dragon-drop', []).
-        directive('dragon', ['$document', '$compile', '$rootScope', function ($document, $compile, $rootScope) {
+        directive('dragon', ['$document', '$compile', '$rootScope', '$http', '$templateCache', '$window', function ($document, $compile, $rootScope, $http, $templateCache, $window) {
             var dragValue,
                 dragKey,
-                dragOrigin,
+                lastOverElement,
+                jsObject,
+                placeholder,
+                placeholderTemplate,
                 dragDuplicate = false,
                 dragEliminate = false,
                 mouseReleased = true,
@@ -34,7 +37,19 @@
                 offsetX,
                 offsetY,
                 fixed,
-                documentBody = angular.element($document[0].body);
+                documentBody = angular.element($document[0].body),
+                mouse = {x: 0, y: 0};
+
+            $document[0].addEventListener('mousemove', function(e){
+                mouse.x = e.clientX || e.pageX;
+                mouse.y = e.clientY || e.pageY
+            }, false);
+
+            var check = function(attr){
+                return function(elem){
+                    return angular.isDefined(angular.element(elem).attr(attr));
+                };
+            };
 
             var isFixed = function (element) {
                 var parents = element.parent(), i, len = parents.length;
@@ -49,13 +64,109 @@
             };
 
             var drag = function (ev) {
-                var x = ev.clientX - offsetX,
-                    y = ev.clientY - offsetY;
+                var elm;
 
-                // console.log(getElementBehindPoint(floaty, x, y));
+                if(placeholder) {
+                    elm = whereBeDragons(getElementBehindPoint(floaty, mouse.x, mouse.y)[0]);
 
-                floaty.css('left', x + 'px');
-                floaty.css('top', y + 'px');
+                    if(elm) {
+                        elm = angular.element(elm);
+                        // TODO: Use CSS transitions here instead of DOM manipulation?
+                        // see http://blog.stevensanderson.com/2013/03/15/animating-lists-with-css-3-transitions/
+                        if (elm !== lastOverElement && !isPlaceholder(elm)) {
+
+                            var oldPlaceholder = placeholder;
+                            newPlaceholder();
+
+                            // handle normal items differently from container/base cases
+                            if (isBase(elm)) {
+                                // TODO: append if moving down, prepend if moving up.
+                                // NOTE: This is likely broken
+                                var container = findContainer(elm);
+                                angular.element(oldPlaceholder).remove();
+                                elm[0].insertBefore(placeholder, container);
+                            } else {
+                                angular.element(oldPlaceholder).remove();
+
+                                // this assumes the -sortable attribute and list-only (not grid)
+                                var pos = elm.attr('data-dragon-position');
+                                if(angular.isUndefined(pos)||pos===0){
+                                    var parent = findParentDragon(elm[0]);
+                                    parent[0].insertBefore(placeholder, parent[0].firstChild);
+                                } else {
+                                    elm[0].appendChild(placeholder);
+                                }
+                            }
+                            lastOverElement = angular.element(placeholder);
+                        } else {
+                            lastOverElement = elm;
+                        }
+                    }
+                }
+
+                floaty.css('left', (ev.clientX - offsetX) + 'px');
+                floaty.css('top', (ev.clientY - offsetY) + 'px');
+            };
+
+            var newPlaceholder = function(){
+                var p = angular.element(placeholderTemplate);
+                p.attr('data-dragon-placeholder',true);
+                placeholder = p[0];
+                return p;
+            };
+
+            var isPlaceholder = check('data-dragon-placeholder');
+            var isSortItem = check('data-dragon-position');
+            var isContainer = check('data-dragon-container');
+            var isBase = check('data-dragon-base');
+            var isDragon = check('data-dragon');
+
+            /**
+             * Finds a dragon element containing the node element
+             * @param {Node} item
+             * @returns {*}
+             */
+            var whereBeDragons = function(item){
+                var found,
+                    current = item;
+
+                do {
+                    var elem = angular.element(current);
+                    if( isPlaceholder(elem) ||
+                        isContainer(elem) ||
+                        isSortItem(elem) ||
+                        isDragon(elem)
+                    ) {
+                        found = current;
+                    } else {
+                        current = current.parentElement;
+                    }
+                } while(!found && current);
+
+                if(angular.isDefined(found)){
+                    return found;
+                } else {
+                    return null;
+                }
+            };
+
+            /**
+             * Finds a parent dragon element (not just any known dragon element).
+             * @param {Node} item
+             * @returns {*}
+             */
+            var findParentDragon = function(item){
+                var current = item;
+                while (current) {
+                    var elem = angular.element(current);
+                    if(isDragon(elem)){
+                        return elem;
+                    } else {
+                        current = current.parentElement;
+                    }
+                }
+
+                return null;
             };
 
             var remove = function (collection, index) {
@@ -143,10 +254,11 @@
 
             // Get the element at position (`x`, `y`) behind the given element
             var getElementBehindPoint = function (behind, x, y) {
-                var originalDisplay = behind.css('display');
+                var element,
+                    originalDisplay = behind.css('display');
                 behind.css('display', 'none');
 
-                var element = angular.element($document[0].elementFromPoint(x, y));
+                element = angular.element($document[0].elementFromPoint(x, y));
 
                 behind.css('display', originalDisplay);
 
@@ -210,6 +322,11 @@
 
                 }
 
+                if(placeholder){
+                    angular.element(placeholder).remove();
+                    placeholder = null;
+                }
+
                 if (dropArea.length > 0) {
                     var isList = angular.isDefined(dropArea.attr('data-dragon')),
                         isTrash = angular.isDefined(dropArea.attr('data-dragon-trash'));
@@ -236,11 +353,11 @@
                     // no dropArea here
                     // put item back to origin
                     $rootScope.$apply(function () {
-                        add(dragOrigin, dragValue, dragKey, position);
+                        add(jsObject, dragValue, dragKey, position);
                     });
                 }
 
-                dragValue = dragOrigin = null;
+                dragValue = jsObject = null;
                 killFloaty();
 
             });
@@ -269,8 +386,6 @@
 
                     var valueIdentifier = match[3] || match[1];
                     var keyIdentifier = match[2];
-
-                    var duplicate = container.attr('data-dragon-duplicate') !== undefined;
 
                     // pull out the template to re-use.
                     // Improvised ng-transclude.
@@ -304,11 +419,15 @@
                     container.html('');
                     container.append(child);
 
+                    // Create a closure over per-element settings.
+                    var duplicate = container.attr('data-dragon-duplicate') !== undefined;
                     var eliminate = container.attr('data-dragon-eliminate') !== undefined;
+                    var placeholderUrl = container.attr('data-dragon-placeholder-template');
 
                     return function (scope, elt, attr) {
 
-                        var accepts = scope.$eval(attr.dragonAccepts);
+                        var accepts = scope.$eval(attr.dragonAccepts),
+                            instanceTemplate = angular.isDefined(placeholderUrl) ? $templateCache.get(placeholderUrl) : null;
 
                         if (accepts !== undefined && typeof accepts !== 'function') {
                             throw new Error('Expected dragonAccepts to be a function.');
@@ -318,6 +437,8 @@
                             $rootScope.$broadcast('drag-start');
                             scope.$apply(function () {
                                 floaty = template.clone();
+
+                                floaty[0].style.cssText = $window.getComputedStyle(template[0], null).cssText;
 
                                 floaty.css('position', 'fixed');
 
@@ -349,6 +470,23 @@
                             } else {
                                 mouseReleased = false;
                                 fixed = !!isFixed(angular.element(ev.target));
+                            }
+
+                            if(angular.isDefined(placeholderUrl)){
+                                if (!angular.isDefined(instanceTemplate)) {
+                                    $http({
+                                        method: 'GET',
+                                        url: placeholderUrl,
+                                        cache: true
+                                    })
+                                        .then(function (result) {
+                                            placeholderTemplate = instanceTemplate = (result && result.data);
+                                        });
+                                } else {
+                                    placeholderTemplate = instanceTemplate;
+                                }
+                            } else {
+                                placeholderTemplate = null;
                             }
 
                             ev.preventDefault();
@@ -383,23 +521,53 @@
                             // get offset inside element to drag
                             var offset = getElementOffset(ev.target);
 
-                            dragOrigin = scope.$eval(enumerableCollection);
-                            if (duplicate) {
-                                dragValue = angular.copy(dragValue);
-                            } else {
-                                scope.$apply(function () {
-                                    remove(dragOrigin, dragKey || dragOrigin.indexOf(dragValue));
-                                });
-                            }
+                            jsObject = scope.$eval(enumerableCollection);
+
+                            // the mousemove operation can only happen on one element at a time,
+                            // requested settings get set as directive-level properties so they
+                            // can be bound within non-private handlers (like document#mousemove)
                             dragDuplicate = duplicate;
                             dragEliminate = eliminate;
 
                             offsetX = (ev.clientX - offset.left);
                             offsetY = (ev.clientY - offset.top);
 
-                            spawnFloaty();
-                            drag(ev);
+                            if (duplicate) {
+                                dragValue = angular.copy(dragValue);
+                            } else {
+                                var eltChildren = elt.children();
+                                var placeholderCandidate;
 
+                                if(placeholderTemplate){
+                                    for(var i = 0; !placeholderCandidate && i < eltChildren.length; i++) {
+                                        var elem = eltChildren[i];
+                                        // elem may be removed immediately following this, so we need the previous iterable template,
+                                        // which may not be the previous sibling
+                                        if(angular.element(elem).scope()[keyIdentifier||valueIdentifier] === dragValue){
+                                            if(i > 0){
+                                                placeholderCandidate = eltChildren[i-1];
+                                            }
+                                        }
+                                    }
+                                }
+
+                                scope.$apply(function () {
+                                    remove(jsObject, dragKey || jsObject.indexOf(dragValue));
+
+                                    if(placeholderTemplate){
+                                        newPlaceholder();
+                                        if(angular.isUndefined(placeholderCandidate)){
+                                            elt[0].insertBefore(placeholder, elt[0].firstChild);
+                                        } else {
+                                            angular.element(placeholderCandidate).after(placeholder);
+                                        }
+                                    } else {
+                                        placeholder = null;
+                                    }
+                                });
+                            }
+
+                            spawnFloaty();
                         });
                     };
                 }

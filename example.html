@@ -13,6 +13,19 @@
         [ng-cloak] {
             display: none;
         }
+
+        ul.nice-list {
+            margin-left:0;
+            list-style-type: none;
+        }
+        ul.nice-list li {
+            width: 250px;
+            background-color: azure;
+        }
+        ul.nice-list li span {
+            display:inline-block;
+            width: 250px;
+        }
     </style>
 </head>
 <body ng-app="ExampleApp">
@@ -64,7 +77,10 @@
             <h3>Things</h3>
 
             <div>
-                <ul data-dragon="thing in things" data-dragon-sortable="sortCallback"><li data-dragon-base>{{thing}}</li></ul>
+                <ul data-dragon="thing in things"
+                    data-dragon-sortable="sortCallback">
+                    <li>{{thing}}</li>
+                </ul>
             </div>
         </div>
         <div class="span6">
@@ -104,7 +120,7 @@
         </div>
     </div>
     <div class="row">
-        <div class="span12" style="margin-top:1em;"><p>To eliminate, drop here (or anywhere there's no drop target)</p>
+        <p style="margin-top:1em;">To eliminate, drop here (or anywhere there's no drop target)</p>
     </div>
 
     <hr>
@@ -200,6 +216,52 @@
     </div>
 
 </div>
+
+<div ng-cloak class="container" ng-controller="MainCtrl">
+
+    <div class="row">
+        <h2>Dragon Drop Example with drag placeholder</h2>
+    </div>
+
+    <hr>
+    <div class="row">
+        <div class="span6">
+            <h3>Things</h3>
+
+            <ul class="nice-list"
+                data-dragon="thing in things"
+                data-dragon-sortable=""
+                data-dragon-placeholder-template="/partials/placeholder1.html">
+                <li><span ng-bind="thing"></span></li>
+            </ul>
+        </div>
+        <div class="span6">
+            <h3>Other Things</h3>
+
+            <ul class="nice-list"
+                data-dragon="thing in otherThings"
+                data-dragon-sortable=""
+                data-dragon-placeholder-template="/partials/placeholder1.html">
+                <li><span ng-bind="thing"></span></li>
+            </ul>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="row">
+        <div class="span6">
+            <h3>Things</h3>
+            <pre>{{things | json}}</pre>
+        </div>
+        <div class="span6">
+            <h3>Other Things</h3>
+            <pre>{{otherThings | json}}</pre>
+        </div>
+    </div>
+
+</div>
+
 
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.9/angular.min.js"></script>
 <script src="dragon-drop.js"></script>
