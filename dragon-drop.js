@@ -64,7 +64,8 @@
             };
 
             var drag = function (ev) {
-                var elm;
+                var parent,
+                    elm;
 
                 if(placeholder) {
                     elm = whereBeDragons(getElementBehindPoint(floaty, mouse.x, mouse.y)[0]);
@@ -87,14 +88,19 @@
                                 elm[0].insertBefore(placeholder, container);
                             } else {
                                 angular.element(oldPlaceholder).remove();
+                                parent = findParentDragon(elm[0]);
 
                                 // this assumes the -sortable attribute and list-only (not grid)
-                                var pos = elm.attr('data-dragon-position');
+                                var pos = parseInt(elm.attr('data-dragon-position'),10);
+
                                 if(angular.isUndefined(pos)||pos===0){
-                                    var parent = findParentDragon(elm[0]);
                                     parent[0].insertBefore(placeholder, parent[0].firstChild);
                                 } else {
-                                    elm[0].appendChild(placeholder);
+                                    try {
+                                        parent[0].insertBefore(placeholder, elm[0]);
+                                    } catch(e) {
+                                        parent[0].appendChild(placeholder);
+                                    }
                                 }
                             }
                             lastOverElement = angular.element(placeholder);
@@ -139,7 +145,7 @@
                     ) {
                         found = current;
                     } else {
-                        current = current.parentElement;
+                        current = current ? current.parentElement : null;
                     }
                 } while(!found && current);
 
@@ -216,6 +222,7 @@
                 });
             };
 
+            // TODO: enable original settings.
             var enableSelect = function () {
                 documentBody.css({
                     '-moz-user-select': '',
@@ -265,10 +272,46 @@
                 return element;
             };
 
+            var verticalSortPosition = function (dropArea, ev) {
+                var positions = [],
+                    position;
+                var min = dropArea[0].getBoundingClientRect().top;
+                var max = dropArea[0].getBoundingClientRect().bottom;
+
+                positions.push(min);
+
+                var i, j, leni, lenj;
+                for (i = 0, leni = dropArea[0].children.length; i < leni; i++) {
+                    var totalHeight = 0;
+                    var smallestTop = Number.POSITIVE_INFINITY;
+                    for (j = 0, lenj = dropArea[0].children[i].getClientRects().length; j < lenj; j++) {
+                        if (smallestTop > dropArea[0].children[i].getClientRects()[j].top) {
+                            smallestTop = dropArea[0].children[i].getClientRects()[j].top;
+                        }
+                        totalHeight += dropArea[0].children[i].getClientRects()[j].height;
+                    }
+                    if (dropArea[0].children[i].attributes['data-dragon-position'] !== undefined) {
+                        positions.push(smallestTop + (totalHeight / 2));
+                    }
+
+                }
+
+                positions.push(max);
+
+                i = 0;
+                while (i < positions.length) {
+                    if (positions[i] <= ev.clientY) {
+                        position = i;
+                    }
+                    i++;
+                }
+
+                return position;
+            };
+
             $document.bind('mouseup', function (ev) {
                 mouseReleased = true;
 
-                var positions = [];
                 var position;
 
                 if (!dragValue) {
@@ -287,39 +330,11 @@
                     dropArea = dropArea.parent();
                 }
 
-                if (dropArea.attr('data-dragon-sortable') !== undefined) {
-
-                    var min = dropArea[0].getBoundingClientRect().top;
-                    var max = dropArea[0].getBoundingClientRect().bottom;
-
-                    positions.push(min);
-
-                    var i, j, leni, lenj;
-                    for (i = 0, leni = dropArea[0].children.length; i < leni; i++) {
-                        var totalHeight = 0;
-                        var smallestTop = Number.POSITIVE_INFINITY;
-                        for (j = 0, lenj = dropArea[0].children[i].getClientRects().length; j < lenj; j++) {
-                            if (smallestTop > dropArea[0].children[i].getClientRects()[j].top) {
-                                smallestTop = dropArea[0].children[i].getClientRects()[j].top;
-                            }
-                            totalHeight += dropArea[0].children[i].getClientRects()[j].height;
-                        }
-                        if (dropArea[0].children[i].attributes['data-dragon-position'] !== undefined) {
-                            positions.push(smallestTop + (totalHeight / 2));
-                        }
-
-                    }
-
-                    positions.push(max);
-
-                    i = 0;
-                    while (i < positions.length) {
-                        if (positions[i] <= ev.clientY) {
-                            position = i;
-                        }
-                        i++;
-                    }
-
+                var sortDirection = dropArea.attr('data-dragon-sortable');
+                if (sortDirection !== "horizontal") {
+                    position = verticalSortPosition(dropArea, ev);
+                } else {
+                    // TODO.
                 }
 
                 if(placeholder){
