@@ -35,6 +35,19 @@
             width: 76px;
         }
         div > button { margin: 12px 0; }
+
+        ul.grid {
+            width: 130px;
+            margin: auto;
+            padding: 20px 160px;
+        }
+        ul.grid li {
+            display: inline-block;
+            width: 40px;
+        }
+        ul.grid li span {
+            width: 30px;
+        }
     </style>
     <script type="text/javascript">
         // Don't want logging output? Remove this line.
@@ -274,6 +287,54 @@
     </div>
     <div class="row">
         <div class="span12 text-center"><button ng-click="things=['one','two','three'];otherThings=[]">reset</button></div>
+    </div>
+
+    <hr>
+
+    <div class="row">
+        <div class="span6">
+            <h3>Things</h3>
+            <pre>{{things | json}}</pre>
+        </div>
+        <div class="span6">
+            <h3>Other Things</h3>
+            <pre>{{otherThings | json}}</pre>
+        </div>
+    </div>
+
+</div>
+
+<div ng-cloak class="container" ng-controller="MainCtrl" ng-init="things=['one','two','three','four','five','six','seven','eight','nine'];otherThings=[]">
+
+    <div class="row">
+        <h2>Dragon Drop Example with drag placeholder (grid)</h2>
+    </div>
+
+    <hr>
+    <div class="row">
+        <div class="span6">
+            <h3>Things</h3>
+
+            <ul class="nice-list grid"
+                data-dragon="thing in things"
+                data-dragon-sortable=""
+                data-dragon-placeholder-template="/partials/placeholder1.html">
+                <li><span ng-bind="thing"></span></li>
+            </ul>
+        </div>
+        <div class="span6">
+            <h3>Other Things</h3>
+
+            <ul class="nice-list grid"
+                data-dragon="thing in otherThings"
+                data-dragon-sortable=""
+                data-dragon-placeholder-template="/partials/placeholder1.html">
+                <li><span ng-bind="thing"></span></li>
+            </ul>
+        </div>
+    </div>
+    <div class="row">
+        <div class="span12 text-center"><button ng-click="things=['one','two','three','four','five','six','seven','eight','nine'];otherThings=[]">reset</button></div>
     </div>
 
     <hr>

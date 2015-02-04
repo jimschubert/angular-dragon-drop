@@ -1,4 +1,4 @@
-/*! dragon-drop - v1.0.4 - 2015-02-03
+/*! dragon-drop - v1.0.4 - 2015-02-04
 * https://github.com/jimschubert/angular-dragon-drop
 * Copyright (c) 2015 Brian Ford; License: MIT */
 (function () {
@@ -43,6 +43,7 @@
                 offsetX,
                 offsetY,
                 fixed,
+                hoverPosition,
                 documentBody = angular.element($document[0].body),
                 mouse = {x: 0, y: 0};
 
@@ -96,17 +97,22 @@
                             // handle normal items differently from container/base cases
                             if (isBase(elm)) {
                                 // TODO: append if moving down, prepend if moving up.
+                                // TODO: Get index of container into hoverPosition
                                 // NOTE: This is likely broken
                                 var container = findContainer(elm);
                                 elm[0].insertBefore(placeholder, container);
                             } else {
                                 if(direction === DragDirection.FIRST){
+                                    hoverPosition = 0;
                                     parent[0].insertBefore(placeholder, parent[0].firstChild);
                                 } else if(direction === DragDirection.PREV){
                                     parent[0].insertBefore(placeholder, elm[0]);
+                                    hoverPosition = util.getIndex(parent[0].children, placeholder);
                                 } else if(direction === DragDirection.NEXT){
                                     parent[0].insertBefore(placeholder, elm[0].nextSibling);
+                                    hoverPosition = util.getIndex(parent[0].children, placeholder);
                                 } else {
+                                    hoverPosition = parent[0].children.length - 1;
                                     parent[0].appendChild(placeholder);
                                 }
                             }
@@ -114,6 +120,8 @@
                         } else {
                             lastOverElement = elm;
                         }
+                    } else {
+                        hoverPosition = null;
                     }
                 }
 
@@ -400,11 +408,17 @@
 
                 var sortDirection = dropArea.attr('data-dragon-sortable');
                 if(sortDirection !== undefined) {
-                    if (sortDirection !== "horizontal") {
+                    // hoverPosition is an attempt at optimization. We already looked at parent/children and handle this
+                    // via DOM location rather than client bounds.
+                    if(angular.isDefined(hoverPosition)){
+                        position = hoverPosition;
+                    } else if (sortDirection !== "horizontal") {
                         position = verticalSortPosition(dropArea, ev);
                     } else {
                         // TODO.
                     }
+                } else {
+                    hoverPosition = null;
                 }
 
                 if(placeholder){
@@ -661,6 +675,8 @@
 
 
         util = (function(){
+            var slice = Array.prototype.slice;
+
             // Copyright Joyent, Inc. and other Node contributors.
             //
             // Permission is hereby granted, free of charge, to any person obtaining a
@@ -728,9 +744,14 @@
                 return r.join(i+'\n');
             }
 
+            function getIndex(arr, elem){
+                return slice.call(arr).indexOf(elem);
+            }
+
             return {
                 format: format,
-                inspect: inspect
+                inspect: inspect,
+                getIndex: getIndex
             };
         })();
 })();
