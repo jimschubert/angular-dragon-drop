@@ -19,8 +19,30 @@
  *************************************************************************/
 (function () {
     'use strict';
-
+    var util;
     var REPEATER_EXP = /^\s*([\s\S]+?)\s+in\s+([\s\S]+?)(?:\s+as\s+([\s\S]+?))?(?:\s+track\s+by\s+([\s\S]+?))?\s*(?:\|\s+([\s\S]+?))?\s*$/;
+
+    /**
+     * Enum for dragging direction
+     * @enum {string}
+     */
+    var DragDirection = {
+        FIRST: 'FIRST',
+        PREV: 'PREV',
+        NEXT: 'NEXT',
+        LAST: 'LAST'
+    };
+
+    var _debug = (function(){
+        if(console && "function" === typeof console.debug && (window.DEBUG||'').indexOf('dragon-drop') !== -1) {
+
+            return function(){
+                console.debug.call(console, util.format.apply(null, arguments));
+            };
+        } else {
+            return function(){};
+        }
+    })();
 
     angular.module('dragon-drop', []).
         directive('dragon', ['$document', '$compile', '$rootScope', '$http', '$templateCache', '$window', function ($document, $compile, $rootScope, $http, $templateCache, $window) {
@@ -65,7 +87,8 @@
 
             var drag = function (ev) {
                 var parent,
-                    elm;
+                    elm,
+                    direction;
 
                 if(placeholder) {
                     elm = whereBeDragons(getElementBehindPoint(floaty, mouse.x, mouse.y)[0]);
@@ -77,30 +100,30 @@
                         if (elm !== lastOverElement && !isPlaceholder(elm)) {
 
                             var oldPlaceholder = placeholder;
+                            parent = findParentDragon(elm[0]);
+                            direction = getDragDirection(elm, getElementOffset(parent[0]));
+
+                            angular.element(oldPlaceholder).remove();
+
                             newPlaceholder();
+
+                            _debug('Moving %s', direction);
 
                             // handle normal items differently from container/base cases
                             if (isBase(elm)) {
                                 // TODO: append if moving down, prepend if moving up.
                                 // NOTE: This is likely broken
                                 var container = findContainer(elm);
-                                angular.element(oldPlaceholder).remove();
                                 elm[0].insertBefore(placeholder, container);
                             } else {
-                                angular.element(oldPlaceholder).remove();
-                                parent = findParentDragon(elm[0]);
-
-                                // this assumes the -sortable attribute and list-only (not grid)
-                                var pos = parseInt(elm.attr('data-dragon-position'),10);
-
-                                if(angular.isUndefined(pos)||pos===0){
+                                if(direction === DragDirection.FIRST){
                                     parent[0].insertBefore(placeholder, parent[0].firstChild);
+                                } else if(direction === DragDirection.PREV){
+                                    parent[0].insertBefore(placeholder, elm[0]);
+                                } else if(direction === DragDirection.NEXT){
+                                    parent[0].insertBefore(placeholder, elm[0].nextSibling);
                                 } else {
-                                    try {
-                                        parent[0].insertBefore(placeholder, elm[0]);
-                                    } catch(e) {
-                                        parent[0].appendChild(placeholder);
-                                    }
+                                    parent[0].appendChild(placeholder);
                                 }
                             }
                             lastOverElement = angular.element(placeholder);
@@ -112,6 +135,63 @@
 
                 floaty.css('left', (ev.clientX - offsetX) + 'px');
                 floaty.css('top', (ev.clientY - offsetY) + 'px');
+            };
+
+            var getDragDirection = function(elem, parentOffset){
+                var direction,
+                    parentCompare,
+                    p = getElementOffset(placeholder),
+                    e = getElementOffset(elem[0]),
+                    f = getElementOffset(floaty[0]),
+                    midheight = angular.element(elem)[0].offsetHeight / 2;
+
+                //  _debug('Placeholder: %j, element: %j, floaty: %j, parentOffset %j, mid-element: %d', p, e, f, parentOffset, midheight);
+
+                if(e.top === parentOffset.top && e.bottom === parentOffset.bottom){
+                    // we're in the parent dragon's realm
+                    parentCompare = true;
+                }
+
+                /*
+                    If placeholder is above current element:
+                    Placeholder |¯¯¯¯¯¯¯|________ current element
+                 */
+                if(true !== parentCompare && (p.top > e.top)){
+                    /*
+                        Placeholder is above current element and floaty's top is
+                        more than halfway up current element's business.
+                        If current element |¯¯¯¯¯¯¯|________ floaty
+                                           |       |        |
+                                           |_______|        |
+                                                   |________|
+                     */
+                    if(f.top > (e.top + midheight)) {
+                        // then dragging element to before current element
+                        direction = DragDirection.PREV;
+                    } else {
+                        // find placement, or handle horizontal dragging logic
+                        direction = DragDirection.NEXT;
+                    }
+                } else {
+                    /*
+                        …placeholder is below current element:
+                        current element |¯¯¯¯¯¯¯|________ placeholder
+                     */
+                    if(f.top < (e.top + midheight)) {
+                        /*
+                         Placeholder is below current element and floaty's top is
+                         more than halfway *below* current element's business.
+                         If current element |¯¯¯¯¯¯¯|
+                                            |       |________ floaty
+                                            |_______|        |
+                         */
+                        direction = parentCompare ? DragDirection.FIRST : DragDirection.NEXT;
+                    } else {
+                        direction = parentCompare ? DragDirection.LAST : DragDirection.PREV;
+                    }
+                }
+
+                return direction;
             };
 
             var newPlaceholder = function(){
@@ -245,9 +325,7 @@
             };
 
             var getElementOffset = function (elt) {
-
                 var box = elt.getBoundingClientRect();
-                //var body = $document[0].body;
                 var body = $document[0].documentElement;
 
                 var xPosition = box.left + body.scrollLeft;
@@ -255,7 +333,9 @@
 
                 return {
                     left: xPosition,
-                    top: yPosition
+                    top: yPosition,
+                    bottom: box.bottom,
+                    height: box.height
                 };
             };
 
@@ -275,6 +355,10 @@
             var verticalSortPosition = function (dropArea, ev) {
                 var positions = [],
                     position;
+                if(!dropArea[0]){
+                    return;
+                }
+
                 var min = dropArea[0].getBoundingClientRect().top;
                 var max = dropArea[0].getBoundingClientRect().bottom;
 
@@ -589,4 +673,78 @@
             };
         }]);
 
+
+        util = (function(){
+            // Copyright Joyent, Inc. and other Node contributors.
+            //
+            // Permission is hereby granted, free of charge, to any person obtaining a
+            // copy of this software and associated documentation files (the
+            // "Software"), to deal in the Software without restriction, including
+            // without limitation the rights to use, copy, modify, merge, publish,
+            // distribute, sublicense, and/or sell copies of the Software, and to permit
+            // persons to whom the Software is furnished to do so, subject to the
+            // following conditions:
+            //
+            // The above copyright notice and this permission notice shall be included
+            // in all copies or substantial portions of the Software.
+            //
+            // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+            // OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+            // MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+            // NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+            // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+            // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+            // USE OR OTHER DEALINGS IN THE SOFTWARE.
+            var formatRegExp = /%[sdj%]/g;
+            var format = function(f) {
+                if (typeof f !== 'string') {
+                    var objects = [];
+                    for (var i = 0; i < arguments.length; i++) {
+                        objects.push(inspect(arguments[i]));
+                    }
+                    return objects.join(' ');
+                }
+
+                var i = 1;
+                var args = arguments;
+                var len = args.length;
+                var str = String(f).replace(formatRegExp, function(x) {
+                    if (i >= len) return x;
+                    switch (x) {
+                        case '%s': return String(args[i++]);
+                        case '%d': return Number(args[i++]);
+                        case '%j': return JSON.stringify(args[i++]);
+                        case '%%': return '%';
+                        default:
+                            return x;
+                    }
+                });
+                for (var x = args[i]; i < len; x = args[++i]) {
+                    if (x === null || typeof x !== 'object') {
+                        str += ' ' + x;
+                    } else {
+                        str += ' ' + inspect(x);
+                    }
+                }
+                return str;
+            };
+
+            /*  Copyright "Christian": http://stackoverflow.com/a/5357478/151445
+             *  StackOverflow code is CC BY-SA 3.0 (http://creativecommons.org/licenses/by-sa/3.0/) */
+            function inspect(o,i){
+                if(typeof i=='undefined')i='';
+                if(i.length>50)return '[MAX ITERATIONS]';
+                var r=[];
+                for(var p in o){
+                    var t=typeof o[p];
+                    r.push(i+'"'+p+'" ('+t+') => '+(t=='object' ? 'object:'+inspect(o[p],i+'  ') : o[p]+''));
+                }
+                return r.join(i+'\n');
+            }
+
+            return {
+                format: format,
+                inspect: inspect
+            };
+        })();
 })();

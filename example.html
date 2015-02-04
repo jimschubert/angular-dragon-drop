@@ -29,6 +29,10 @@
             width: 76px;
         }
     </style>
+    <script type="text/javascript">
+        // Don't want logging output? Remove this line.
+        window.DEBUG = 'dragon-drop';
+    </script>
 </head>
 <body ng-app="ExampleApp">
 
@@ -273,7 +277,7 @@
                 $scope.things = ['one', 'two', 'three'];
                 $scope.otherThings = [];
                 $scope.log = function(value, key) {
-                    $log.info('Key: %s, Value: %s', key, value);
+                    $log.debug('Key: %s, Value: %s', key, value);
                 }
             });
 </script>
