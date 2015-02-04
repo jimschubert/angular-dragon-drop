@@ -415,10 +415,12 @@
                 }
 
                 var sortDirection = dropArea.attr('data-dragon-sortable');
-                if (sortDirection !== "horizontal") {
-                    position = verticalSortPosition(dropArea, ev);
-                } else {
-                    // TODO.
+                if(sortDirection !== undefined) {
+                    if (sortDirection !== "horizontal") {
+                        position = verticalSortPosition(dropArea, ev);
+                    } else {
+                        // TODO.
+                    }
                 }
 
                 if(placeholder){

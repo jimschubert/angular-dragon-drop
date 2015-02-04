@@ -8,6 +8,12 @@
         [data-dragon-trash] {
             padding: 20px;
             border: 1px solid red;
+            min-height:40px;
+            border-radius: 4px;
+        }
+
+        pre {
+            min-height:120px;
         }
 
         [ng-cloak] {
@@ -28,6 +34,7 @@
             display:inline-block;
             width: 76px;
         }
+        div > button { margin: 12px 0; }
     </style>
     <script type="text/javascript">
         // Don't want logging output? Remove this line.
@@ -54,6 +61,9 @@
 
             <div data-dragon="thing in otherThings" data-dragon-on-drop="log">{{thing}}</div>
         </div>
+    </div>
+    <div class="row">
+        <div class="span12 text-center"><button ng-click="things=['one','two','three'];otherThings=[]">reset</button></div>
     </div>
 
     <hr>
@@ -92,6 +102,9 @@
         <div class="span6">
         </div>
     </div>
+    <div class="row">
+        <div class="span12 text-center"><button ng-click="things=['one','two','three'];otherThings=[]">reset</button></div>
+    </div>
 
     <hr>
 
@@ -117,7 +130,7 @@
         <div class="span6">
             <h3>Things</h3>
 
-            <div data-dragon="thing in things">{{thing}}</div>
+            <div data-dragon="thing in things" data-dragon-eliminate>{{thing}}</div>
         </div>
         <div class="span6">
             <h3>Other Things</h3>
@@ -126,7 +139,8 @@
         </div>
     </div>
     <div class="row">
-        <p style="margin-top:1em;">To eliminate, drop here (or anywhere there's no drop target)</p>
+        <div class="span12 text-center"><p style="margin-top:1em;">To eliminate, drop here (or anywhere there's no drop target)</p></div>
+        <div class="span12 text-center"><button ng-click="things=['one','two','three'];otherThings=[]">reset</button></div>
     </div>
 
     <hr>
@@ -164,6 +178,9 @@
 
             <div data-dragon="thing in otherThings track by $index">{{thing}}</div>
         </div>
+    </div>
+    <div class="row">
+        <div class="span12 text-center"><button ng-click="things=['one','two','three'];otherThings=[]">reset</button></div>
     </div>
 
     <hr>
@@ -206,6 +223,9 @@
 
             <div data-dragon-trash></div>
         </div>
+    </div>
+    <div class="row">
+        <div class="span12 text-center"><button ng-click="things=['one','two','three'];otherThings=[]">reset</button></div>
     </div>
 
     <hr>
@@ -251,6 +271,9 @@
                 <li><span ng-bind="thing"></span></li>
             </ul>
         </div>
+    </div>
+    <div class="row">
+        <div class="span12 text-center"><button ng-click="things=['one','two','three'];otherThings=[]">reset</button></div>
     </div>
 
     <hr>
