@@ -14,8 +14,20 @@ npm install dragon-drop
 ```
 
 ## Usage
-1. Include the `dragon-drop.js` script provided by this component into your app.
+
+1. Include the `dist/dragon-drop.min.js` script provided by this component into your app.
 2. Add `dragon-drop` as a module dependency to your app.
+
+For example:
+
+```html
+<script src="dist/dragon-drop.min.js"></script>
+<script>
+    angular.module('ExampleApp', ['dragon-drop']).
+            controller('MainCtrl', function ($scope, $log) {
+            });
+</script>
+```
 
 Repeats a template inside the dragon over a list.
 ```html
@@ -40,12 +52,14 @@ It also works on objects:
 
 
 ## Config
+
 This is not a kitchen sink every-option-you-can-think-of module.
 This is a starting point.
 Configure by forking and editing the code according to your needs.
 Send a PR if you think your additions are widely useful. :)
 
 ### data-dragon-duplicate
+
 Instead of removing values from the array this dragon is bound to, the values are duplicated.
 Add the `data-dragon-duplicate` attribute to an element with the `data-dragon` attribute to get the behavior.
 
@@ -62,6 +76,7 @@ Example:
 ```
 
 ### data-dragon-accepts
+
 Makes the dragon only accepts items that pass the truth test function given by this argument.
 Add the `data-dragon-accepts` attribute to an element to get the behavior.
 
@@ -85,6 +100,7 @@ $scope.shinyThings = function (item) {
 ```
 
 ### data-dragon-eliminate
+
 Makes it so that the item is eliminated if it is not dropped inside of another dragon.
 Add the `data-dragon-eliminate` attribute to an element to get the behavior.
 
@@ -101,6 +117,7 @@ Example:
 ```
 
 ### data-dragon-base / data-dragon-container
+
 Makes it so the drop zone and template container can be separated.
 Add `data-dragon-base` to the dragon and `data-dragon-container` to any child of the dragon.
 
@@ -119,7 +136,9 @@ Example:
 ```
 
 ## Example
+
 See [`example.html`](http://htmlpreview.github.io/?https://github.com/jimschubert/angular-dragon-drop/blob/master/example.html).
 
 ## License
+
 MIT

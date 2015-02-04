@@ -1,6 +1,6 @@
 {
   "name": "dragon-drop",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Drag and Drop for AngularJS, a fork of Brian Ford's module.",
   "main": "dragon-drop.js",
   "scripts": {
@@ -43,10 +43,23 @@
     "browser",
     "client"
   ],
-  "author": "Brian Ford",
+  "author": {
+    "name": "Brian Ford"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/jimschubert/angular-dragon-drop/issues"
   },
-  "homepage": "https://github.com/jimschubert/angular-dragon-drop"
+  "homepage": "https://github.com/jimschubert/angular-dragon-drop",
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.5",
+    "grunt-contrib-jshint": "~0.10.0",
+    "grunt-contrib-watch": "~0.6.1",
+    "grunt-contrib-qunit": "~0.5.2",
+    "grunt-contrib-concat": "~0.4.0",
+    "grunt-contrib-uglify": "~0.5.0"
+  }
 }
