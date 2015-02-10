@@ -1,4 +1,4 @@
-/*! dragon-drop - v1.0.5 - 2015-02-09
+/*! dragon-drop - v1.0.6 - 2015-02-09
 * https://github.com/jimschubert/angular-dragon-drop
 * Copyright (c) 2015 Brian Ford; License: MIT */
 (function () {

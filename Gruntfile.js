@@ -1,10 +1,11 @@
 /*global module:false*/
 module.exports = function (grunt) {
+    var pkg = grunt.file.readJSON('package.json');
 
     // Project configuration.
     grunt.initConfig({
         // Metadata.
-        pkg: grunt.file.readJSON('package.json'),
+        pkg: pkg,
         banner: '/*! <%= pkg.title || pkg.name %> - v<%= pkg.version %> - ' +
         '<%= grunt.template.today("yyyy-mm-dd") %>\n' +
         '<%= pkg.homepage ? "* " + pkg.homepage + "\\n" : "" %>' +
@@ -78,8 +79,20 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
 
-    // Default task.
-    grunt.registerTask('default', ['jshint', /* 'qunit', */ 'concat', 'uglify']);
+    // Modify bower.json on build to keep version numbers in sync.
+    grunt.registerTask('bowup', function () {
+        var bowerJSON = "bower.json";
 
-    // TODO: Modify bower.json on build to keep version numbers in sync.
+        if (!grunt.file.exists(bowerJSON)) {
+            grunt.log.error("%s does not exist", bowerJSON);
+        } else {
+            var bower = grunt.file.readJSON(bowerJSON);
+            bower.version = pkg.version;
+
+            grunt.file.write(bowerJSON, JSON.stringify(bower, null, 4));
+        }
+    });
+
+    // Default task.
+    grunt.registerTask('default', ['jshint', /* 'qunit', */ 'concat', 'uglify', 'bowup']);
 };
