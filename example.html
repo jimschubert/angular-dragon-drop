@@ -23,6 +23,11 @@
         ul.nice-list {
             margin-left:0;
             list-style-type: none;
+            -moz-user-select: -moz-none;
+            -khtml-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
         ul.nice-list li {
             /* margin:2px; display:inline-block; */
@@ -37,16 +42,23 @@
         div > button { margin: 12px 0; }
 
         ul.grid {
-            width: 130px;
+            width: 240px;
             margin: auto;
-            padding: 20px 160px;
+            padding: 30px 100px;
         }
         ul.grid li {
             display: inline-block;
-            width: 40px;
+            width: 80px;
+            height: 80px;
         }
         ul.grid li span {
-            width: 30px;
+            line-height:80px;
+            vertical-align: middle;
+            text-align: center;
+        }
+        ul.grid li span.placeholder {
+            width:72px; /* nice-list padding */
+            height:76px;
         }
     </style>
     <script type="text/javascript">

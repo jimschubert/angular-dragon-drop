@@ -23,6 +23,20 @@
     var REPEATER_EXP = /^\s*([\s\S]+?)\s+in\s+([\s\S]+?)(?:\s+as\s+([\s\S]+?))?(?:\s+track\s+by\s+([\s\S]+?))?\s*(?:\|\s+([\s\S]+?))?\s*$/;
 
     /**
+     * Class to pseudo-hold anonymous types definitions for jsdoc3
+     * @class
+     */
+    function Anon(){}
+
+    /**
+     * Accepts an element to which a predefined attribute's existence will be evaluated.
+     * @name Anon~CheckAttr
+     * @function
+     * @param {Node} elem - A node element
+     * @return boolean
+     */
+
+    /**
      * Enum for dragging direction
      * @enum {string}
      */
@@ -33,10 +47,19 @@
         LAST: 'LAST'
     };
 
+    /**
+     * Conditionally debug a formattable message if window.DEBUG contains the module name and the environment supports console.debug.
+     *
+     * This includes formatting extensions based on node.js's util.format. The JSON object inspection is taken from Christian on SO.
+     *
+     * Examples:
+     * _debug("%s is #%d", "first", 1); // "first is #1"
+     * _debug("%s: %j", "key", {a:1,b:"hi", c: new Date(), d: { e: { f: 0 } } });
+     * > key: {"a":1,"b":"hi","c":"2015-02-05T03:34:34.407Z","d":{"e":{"f":0}}}
+     */
     var _debug = (function(){
         if(console && "function" === typeof console.debug && (window.DEBUG||'').indexOf('dragon-drop') !== -1) {
-
-            return function(){
+            return function Debug(){
                 console.debug.call(console, util.format.apply(null, arguments));
             };
         } else {
@@ -68,12 +91,23 @@
                 mouse.y = e.clientY || e.pageY
             }, false);
 
+            /**
+             * Checks if an attribute is defined on an element.
+             * @param attr
+             * @returns {Anon~CheckAttr}
+             */
             var check = function(attr){
-                return function(elem){
+                return function CheckAttr(elem){
                     return angular.isDefined(angular.element(elem).attr(attr));
                 };
             };
 
+            /**
+             * Determines if an element is 'fixed', that is it should not be sorted.
+             *
+             * @param element A node element wrapped in angular.element
+             * @returns {boolean}
+             */
             var isFixed = function (element) {
                 var parents = element.parent(), i, len = parents.length;
                 for (i = 0; i < len; i++) {
@@ -86,6 +120,10 @@
                 return false;
             };
 
+            /**
+             * A drag event callback
+             * @param ev The drag event
+             */
             var drag = function (ev) {
                 var parent,
                     elm,
@@ -141,17 +179,28 @@
                     }
                 }
 
-                floaty.css('left', (ev.clientX - offsetX) + 'px');
-                floaty.css('top', (ev.clientY - offsetY) + 'px');
+                floaty.css({
+                    'left':(ev.clientX - offsetX) + 'px',
+                    'top': (ev.clientY - offsetY) + 'px'
+                });
             };
 
+            /**
+             * Determines the direction of a drag based on the position of the dragging element
+             * relative to the element it's being dragged over and the immediate dragon parent's offset.
+             *
+             * @param elem A node element wrapped in angular.element
+             * @param parentOffset An offset structure
+             * @returns {*}
+             */
             var getDragDirection = function(elem, parentOffset){
                 var direction,
                     parentCompare,
                     p = getElementOffset(placeholder),
                     e = getElementOffset(elem[0]),
                     f = getElementOffset(floaty[0]),
-                    midheight = angular.element(elem)[0].offsetHeight / 2;
+                    midheight = elem[0].offsetHeight / 2,
+                    midwidth = elem[0].offsetWidth / 2;
 
                 //  _debug('Placeholder: %j, element: %j, floaty: %j, parentOffset %j, mid-element: %d', p, e, f, parentOffset, midheight);
 
@@ -160,48 +209,94 @@
                     parentCompare = true;
                 }
 
-                /*
-                    If placeholder is above current element:
-                    Placeholder |¯¯¯¯¯¯¯|________ current element
-                 */
-                if(true !== parentCompare && (p.top > e.top)){
+                if(parentCompare){
                     /*
-                        Placeholder is above current element and floaty's top is
-                        more than halfway up current element's business.
-                        If current element |¯¯¯¯¯¯¯|________ floaty
-                                           |       |        |
-                                           |_______|        |
-                                                   |________|
+                     * …placeholder is below current element:
+                     * current element |¯¯¯¯¯¯¯|________ placeholder
                      */
-                    if(f.top > (e.top + midheight)) {
-                        // then dragging element to before current element
-                        direction = DragDirection.PREV;
+                    if((f.top < (e.top + midheight))||(f.left < (e.left + midwidth))) {
+                        /*
+                         * floaty's top is more than halfway *below* current element's middle business.
+                         * If current element |¯¯¯¯¯¯¯|
+                         *                    |       |________ floaty
+                         *                    |_______|        |
+                         * or…
+                         * floaty's left is further than halfway across the middle of the element
+                         * If current element |¯¯¯¯¯¯¯|    floaty
+                         *                    |  |¯¯¯¯¯¯¯¯|
+                         *                    |__|        |
+                         *                       |________|
+                         */
+                        direction = DragDirection.FIRST;
                     } else {
-                        // find placement, or handle horizontal dragging logic
-                        direction = DragDirection.NEXT;
+                        direction = DragDirection.LAST;
                     }
                 } else {
                     /*
-                        …placeholder is below current element:
-                        current element |¯¯¯¯¯¯¯|________ placeholder
+                     If placeholder is above current element:
+                     Placeholder |¯¯¯¯¯¯¯|________ current element
                      */
-                    if(f.top < (e.top + midheight)) {
+                    if(p.top > e.top){
                         /*
-                         Placeholder is below current element and floaty's top is
-                         more than halfway *below* current element's business.
-                         If current element |¯¯¯¯¯¯¯|
-                                            |       |________ floaty
-                                            |_______|        |
+                         * Placeholder is above current element and floaty's top is
+                         * more than halfway up current element's business.
+                         * If current element |¯¯¯¯¯¯¯|________ floaty
+                         *                    |       |        |
+                         *                    |_______|        |
+                         *                            |________|
                          */
-                        direction = parentCompare ? DragDirection.FIRST : DragDirection.NEXT;
+                        if(f.top > (e.top + midheight)) {
+                            // then dragging element to before current element
+                            direction = DragDirection.PREV;
+                        } else {
+                            // find placement, or handle horizontal dragging logic
+                            direction = DragDirection.NEXT;
+                        }
+                    } else if(f.right > (e.right - midwidth)){
+                        /*
+                         * Floaty's right is more than halfway through the hovering element's midsection.
+                         * floaty   |¯¯¯¯¯¯¯|  Current element
+                         *      |¯¯¯¯¯¯¯¯|  |
+                         *      |        |__|
+                         *      |________|
+                         */
+                        direction = DragDirection.NEXT;
+                    } else if(f.left < (e.left + midwidth)) {
+                        /*
+                         * Floaty's left is more than halfway through the hovering element's midsection.
+                         * If current element |¯¯¯¯¯¯¯|    floaty
+                         *                    |  |¯¯¯¯¯¯¯¯|
+                         *                    |__|        |
+                         *                       |________|
+                         */
+                        direction = DragDirection.PREV;
                     } else {
-                        direction = parentCompare ? DragDirection.LAST : DragDirection.PREV;
+                        /*
+                         * …placeholder is below current element:
+                         * current element |¯¯¯¯¯¯¯|________ placeholder
+                         */
+                        if(f.top < (e.top + midheight)) {
+                            /*
+                             * Placeholder is below current element and floaty's top is
+                             * more than halfway *below* current element's business.
+                             * If current element |¯¯¯¯¯¯¯|
+                             *                    |       |________ floaty
+                             *                    |_______|        |
+                             */
+                            direction = DragDirection.NEXT;
+                        } else {
+                            direction = DragDirection.PREV;
+                        }
                     }
                 }
 
                 return direction;
             };
 
+            /**
+             * Creates a new placeholder element and assigns to `placeholder`
+             * @returns {object} The new element wrapped in angular.element
+             */
             var newPlaceholder = function(){
                 var p = angular.element(placeholderTemplate);
                 p.attr('data-dragon-placeholder',true);
@@ -263,6 +358,12 @@
                 return null;
             };
 
+            /**
+             * Removes an item from a collection or object by index (or key)
+             * @param {object|Array} collection
+             * @param {Number|String} index
+             * @returns {*} The removed item
+             */
             var remove = function (collection, index) {
                 if (angular.isArray(collection)) {
                     return collection.splice(index, 1);
@@ -273,6 +374,14 @@
                 }
             };
 
+            /**
+             * Adds an item to an array or object via key or index
+             *
+             * @param {object|Array} collection
+             * @param {*} item The item to add
+             * @param {string} key The key to use when adding to an object
+             * @param {Number} position The index when adding to an array
+             */
             var add = function (collection, item, key, position) {
                 if (angular.isArray(collection)) {
                     var pos;
@@ -338,12 +447,13 @@
 
                 var xPosition = box.left + body.scrollLeft;
                 var yPosition = box.top + body.scrollTop;
-
                 return {
                     left: xPosition,
                     top: yPosition,
                     bottom: box.bottom,
-                    height: box.height
+                    height: box.height,
+                    right: box.right,
+                    width: box.width
                 };
             };
 
@@ -426,12 +536,10 @@
                 if(sortDirection !== undefined) {
                     // hoverPosition is an attempt at optimization. We already looked at parent/children and handle this
                     // via DOM location rather than client bounds.
-                    if(angular.isDefined(hoverPosition)){
+                    if(hoverPosition === 0 || hoverPosition){
                         position = hoverPosition;
-                    } else if (sortDirection !== "horizontal") {
-                        position = verticalSortPosition(dropArea, ev);
                     } else {
-                        // TODO.
+                        position = verticalSortPosition(dropArea, ev);
                     }
                 } else {
                     hoverPosition = null;
